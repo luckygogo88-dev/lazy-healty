@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#176b5b">
+<title>懒人健康｜自测与健康记录</title>
+<style>
+:root{--ink:#172b28;--muted:#5d716c;--brand:#176b5b;--brand2:#e2f3ed;--line:#dce7e2;--bg:#f3f7f5;--warn:#fff4dc;--warnink:#805900;--danger:#a93232;--card:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;line-height:1.55}
+button,input,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;pointer-events:auto}
+.app{max-width:760px;margin:0 auto;padding:18px 14px calc(30px + env(safe-area-inset-bottom))}
+header{padding:8px 4px 18px}
+h1{font-size:25px;line-height:1.2;margin:0 0 8px;color:var(--brand)}
+.subtitle{margin:0;color:var(--muted);font-size:14px}
+.badge{display:inline-block;border-radius:999px;background:var(--brand2);color:var(--brand);padding:4px 10px;font-size:12px;font-weight:700;margin-bottom:10px}
+.notice{background:var(--warn);color:var(--warnink);border:1px solid #f0d89a;border-radius:12px;padding:12px 14px;font-size:13px;margin:0 0 14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:5px;background:#e7efeb;border-radius:14px;margin-bottom:16px;scrollbar-width:thin}
+.tab{flex:0 0 auto; -webkit-appearance:none; appearance:none;border:0;border-radius:10px;background:transparent;color:#3e6258;padding:10px 13px;font-weight:700;font-size:13px;min-height:42px}
+.tab[aria-selected="true"]{background:#fff;color:var(--brand);box-shadow:0 1px 5px #18382b18}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #173a2b08}
+h2{font-size:18px;margin:0 0 8px}h3{font-size:15px;margin:0 0 7px}
+p{margin:6px 0 10px}
+.muted{color:var(--muted);font-size:13px}
+.instructions{background:#f6faf8;border-left:4px solid var(--brand);padding:11px 12px;border-radius:0 10px 10px 0;font-size:13px;margin:12px 0}
+.timer{font-size:clamp(40px,10vw,56px);font-weight:800;letter-spacing:-1px;text-align:center;font-variant-numeric:tabular-nums;color:var(--brand);padding:10px 0}
+.row{display:flex;gap:9px;flex-wrap:wrap}
+.row>*{flex:1;min-width:110px}
+.btn{-webkit-appearance:none;appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:750;min-height:46px}
+.primary{background:var(--brand);color:#fff}.secondary{background:#edf3f0;color:var(--ink);border:1px solid var(--line)}.danger{background:#fff0f0;color:var(--danger);border:1px solid #f1cccc}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}
+input[type=number],input[type=date],select{width:100%;border:1px solid #c8d7d0;border-radius:10px;padding:11px 12px;background:white;min-height:44px;color:var(--ink)}
+.metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.metric{background:#f7faf8;border:1px solid var(--line);border-radius:12px;padding:11px}
+.metric .name{font-size:12px;color:var(--muted)}.metric .value{font-size:20px;font-weight:800;color:var(--brand);margin-top:2px}
+.trials{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.trial{border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;background:#f8fbf9;color:var(--muted)}
+.result{display:none;background:#eef8f3;border:1px solid #cfe8dc;border-radius:12px;padding:13px;margin-top:12px}
+.result strong{font-size:20px;color:var(--brand)}
+.result small{display:block;color:var(--muted);margin-top:5px}
+.field-help{font-size:12px;color:var(--muted);margin-top:4px}
+.checkrow{display:flex;align-items:flex-start;gap:9px;font-size:13px;margin:9px 0}
+.checkrow input{margin-top:5px}
+.photo-preview{max-width:100%;max-height:240px;object-fit:contain;border-radius:12px;display:none;margin:10px auto}
+.score-list{display:grid;gap:8px}
+.score-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.score-item:last-child{border-bottom:0}
+.pill{display:inline-block;background:#eef3f0;border-radius:7px;padding:3px 7px;font-size:11px;color:#4c655b}
+.footer{font-size:12px;color:var(--muted);text-align:center;padding:14px 5px}
+@media(min-width:600px){.app{padding:24px 20px}.card{padding:20px}.metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <span class="badge">项目基线 · V1.2.4 兼容性修复版</span>
+  <h1>懒人健康</h1>
+  <p class="subtitle">居家功能自测与个人健康记录｜先记录可靠的测量值，再逐步接入经验证的常模。</p>
+</header>
+<div id="appStatus" class="notice" role="status" aria-live="polite">交互状态：尚未启动。若按钮无反应，请在 Safari 或 Chrome 中打开网页；手机的文件预览器可能不执行 JavaScript。</div>
+<div class="notice"><b>重要说明：</b>本工具不是医疗诊断。平衡、皮肤回缩、近点视力和手动面部评分目前只记录测量值或实验性结果，不应解释为经过临床验证的“生理年龄”。闭眼单脚站立有跌倒风险，请靠近稳固支撑物；有头晕、疼痛或平衡障碍时不要测试。</div>
+
+<nav class="tabs" role="tablist" aria-label="测试项目">
+  <button type="button" class="tab" role="tab" aria-selected="true" data-panel="balance">平衡</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="skin">皮肤</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="sight">近点视力</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="face">面部记录</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="grip">握力（选测）</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="sts">下肢功能（坐站 / 蹲起）</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-panel="report">报告与数据</button>
+</nav>
+
+<section class="panel active" id="balance" role="tabpanel">
+  <div class="card">
+    <h2>闭眼单脚站立</h2>
+    <div class="instructions">在稳固支撑物旁进行。先睁眼站稳，按“开始”后倒计时 3 秒；听到提示后闭眼并抬起一只脚。脚落地、支撑脚移动、睁眼或手离开腰部时立即停止。若感到不稳，立即睁眼并扶稳。</div>
+    <div class="trials" id="balanceTrials"><span class="trial">第 1 次：未测</span><span class="trial">第 2 次：未测</span><span class="trial">第 3 次：未测</span></div>
+    <div class="timer" id="balanceTimer" aria-live="polite">0.0 秒</div>
+    <div class="row"><button type="button" class="btn primary" id="balanceStart">开始（3 秒准备）</button><button type="button" class="btn secondary" id="balanceStop" disabled>停止 / 脚已落地</button></div>
+    <div class="result" id="balanceResult"></div>
+    <p class="muted">记录 3 次，报告最佳时长。V1.1 暂不将秒数转换成“平衡年龄”，因为现有候选公式未经充分验证。</p>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn secondary" id="balanceAgain">再测一次</button><button type="button" class="btn secondary" id="balanceReset">清空本项记录</button></div>
+  </div>
+</section>
+
+<section class="panel" id="skin" role="tabpanel">
+  <div class="card">
+    <h2>手背皮肤回缩计时</h2>
+    <div class="instructions">点击“开始测试”后，轻轻捏起手背皮肤 5 秒。倒计时结束时，听到/感到提示后立即松手；计时器会自动开始。皮肤恢复平整时，点击“皮肤已恢复，停止计时”。不要用力捏到疼痛或造成瘀青。该测试受年龄以外的多种因素影响，不能单独判断衰老程度。</div>
+    <div class="trials" id="skinTrials"><span class="trial">第 1 次：未测</span><span class="trial">第 2 次：未测</span><span class="trial">第 3 次：未测</span></div>
+    <button type="button" class="btn primary" id="skinToggle" style="width:100%">开始测试（捏住 5 秒）</button>
+    <div class="timer" id="skinTimer" aria-live="polite">准备就绪</div>
+    <button type="button" class="btn secondary" id="skinStop" style="width:100%;margin-top:8px" disabled>皮肤已恢复，停止计时</button>
+    <div class="result" id="skinResult"></div>
+    <p class="muted">报告最快一次回缩时间；不生成未经验证的皮肤年龄。</p>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn secondary" id="skinAgain">再测一次</button><button type="button" class="btn secondary" id="skinReset">清空本项记录</button></div>
+  </div>
+</section>
+
+<section class="panel" id="sight" role="tabpanel">
+  <div class="card">
+    <h2>近点视力记录</h2>
+    <div class="instructions">使用日常矫正眼镜（如平时阅读需要），固定屏幕字号与光线。从能清晰阅读的位置缓慢移动手机，记录文字刚开始模糊时眼睛到屏幕的距离。每次用直尺测量，避免用宽泛区间代替实际数值。</div>
+    <div class="sight-box" style="background:#f5f8f6;padding:16px;border-radius:10px;font-size:14px">懒人健康：保持相同字号、亮度和阅读姿势，记录每次测量距离。</div>
+    <label for="sightDistance">本次距离（厘米）</label><input id="sightDistance" type="number" min="1" max="100" step="0.5" placeholder="例如 32.5">
+    <div class="row" style="margin-top:10px"><button type="button" class="btn primary" id="sightRecord">记录本次</button><button type="button" class="btn secondary" id="sightAgain">再测一次</button><button type="button" class="btn secondary" id="sightReset">清空本项记录</button></div>
+    <div class="trials" id="sightTrials"></div><div class="result" id="sightResult"></div>
+    <p class="muted">该简易测试不是标准眼科检查。近视、远视、老花、眼镜度数和屏幕字号都会影响结果；不将距离直接换算成视力年龄。</p>
+  </div>
+</section>
+
+<section class="panel" id="face" role="tabpanel">
+  <div class="card">
+    <h2>面部照片与观察记录</h2>
+    <div class="notice">当前版本不具备 AI 面部年龄识别功能。下面的照片只用于本机预览，特征选项是主观记录；不把加减分结果称为真实 FaceAge。</div>
+    <label for="facePhoto">选择或拍摄照片（可选）</label><input id="facePhoto" type="file" accept="image/*" capture="user">
+    <img id="facePreview" class="photo-preview" alt="所选照片预览">
+    <label for="faceDate">记录日期</label><input type="date" id="faceDate">
+    <label for="faceNotes">观察备注（可选）</label><input type="text" id="faceNotes" maxlength="240" placeholder="例如：自然光、无滤镜、正面">
+    <p class="muted">隐私说明：照片不会上传到服务器；此页面不会将照片内容写入导出报告。重新载入页面后，照片预览可能需要重新选择。</p>
+    <button type="button" class="btn secondary" id="faceSave" style="width:100%">保存面部记录</button>
+    <div class="result" id="faceResult"></div>
+  </div>
+</section>
+
+<section class="panel" id="grip" role="tabpanel">
+  <div class="card">
+    <h2>握力记录（选测，需要握力计）</h2>
+    <div class="instructions">本项需要握力计，是选测项目，不是完成其他测试或生成试算年龄的前提。没有设备时可直接跳过。若进行测量，请使用同一台握力计和同一姿势，左右手分别记录；若有手腕、手指或肩部疼痛，停止测试。</div>
+    <div class="metric-grid">
+      <div><label for="gripRight">右手（kg）</label><input type="number" id="gripRight" min="0" max="150" step="0.1" placeholder="例如 29.1"></div>
+      <div><label for="gripLeft">左手（kg）</label><input type="number" id="gripLeft" min="0" max="150" step="0.1" placeholder="输入测量值"></div>
+      <div><label for="gripSex">常模性别</label><select id="gripSex"><option value="">请选择</option><option value="female">女性</option><option value="male">男性</option><option value="unspecified">暂不指定</option></select></div>
+      <div><label for="gripDominant">优势手</label><select id="gripDominant"><option value="right">右手</option><option value="left">左手</option><option value="both">不确定</option></select></div>
+      <div><label for="gripDevice">设备/备注</label><input id="gripDevice" maxlength="100" placeholder="设备型号、次数等"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn primary" id="gripSave">保存握力结果</button><button type="button" class="btn secondary" id="gripSkip">没有握力计，跳过此项</button><button type="button" class="btn secondary" id="gripReset">清空输入</button></div>
+    <div class="result" id="gripResult"></div>
+    <p class="muted">V1.1 先记录实测 kg。中国大样本常模与年龄映射尚待回到原始论文核验，因此暂不自动给出握力年龄或百分位。</p>
+  </div>
+</section>
+
+<section class="panel" id="sts" role="tabpanel">
+  <div class="card">
+    <h2>五次坐站（STS5）</h2>
+    <div class="instructions">使用稳固、无扶手椅子，放在墙边防止滑动。双臂交叉于胸前，从完全坐下开始；尽快且安全地完成 5 次“完全站直—完全坐下”，第 5 次完全站直时停止计时。若失衡、疼痛或气促明显，立即停止。测试旁边应有稳固支撑。</div>
+    <label for="stsChair">椅子高度（厘米，可选）</label><input id="stsChair" type="number" min="30" max="70" step="0.5" placeholder="记录实际椅高">
+    <div class="trials" id="stsTrials"></div>
+    <div class="timer" id="stsTimer">0.00 秒</div>
+    <div class="row"><button type="button" class="btn primary" id="stsStart">开始计时</button><button type="button" class="btn secondary" id="stsStop" disabled>第 5 次站直：停止</button></div>
+    <div class="result" id="stsResult"></div>
+    <p class="muted">目前报告原始时间，不自动转换年龄。历史候选常模与动作协议仍需进一步核验后，才会接入功能年龄算法。</p>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn secondary" id="stsAgain">再测一次</button><button type="button" class="btn secondary" id="stsReset">清空本项记录</button></div>
+  </div>
+
+  <div class="card">
+    <h2>30 秒徒手蹲起测试</h2>
+    <div class="instructions">
+      <b>准备：</b>选择平整、防滑的地面，穿稳定的鞋；双脚约与肩同宽，脚尖自然外展，旁边留出空间。先做 2–3 次慢速练习确认动作舒适。<br>
+      <b>动作：</b>髋部向后下方移动，膝盖朝脚尖方向弯曲；在不疼痛、能保持平衡的范围内下蹲，再站回直立。每次完整下蹲并重新站直计 1 次。不要为了追求次数而弹震、失去平衡或强行蹲得过深。<br>
+      <b>计数：</b>按开始后持续 30 秒，手动计数；时间结束后停止。当前版本不通过摄像头自动识别动作。
+    </div>
+    <div class="notice">安全提示：若有膝、髋、腰部疼痛、近期跌倒、明显头晕或医生限制运动，请不要进行测试。测试中出现胸痛、异常气促、头晕或疼痛应立即停止。此项不是诊断工具。</div>
+    <label for="squatDepth">动作幅度（自评）</label>
+    <select id="squatDepth">
+      <option value="comfortable">舒适范围内，动作稳定</option>
+      <option value="partial">浅蹲 / 受活动度限制</option>
+      <option value="uncertain">不确定是否达到一致深度</option>
+    </select>
+    <label for="squatSupport">是否借助支撑</label>
+    <select id="squatSupport">
+      <option value="none">未借助支撑</option>
+      <option value="support">借助稳固支撑保持平衡</option>
+    </select>
+    <label for="squatCount">30 秒完成次数</label>
+    <input type="number" id="squatCount" min="0" max="100" step="1" placeholder="计时结束后输入完整次数">
+    <div class="timer" id="squatTimer" aria-live="polite">30.0 秒</div>
+    <div class="row">
+      <button type="button" class="btn primary" id="squatStart">开始 30 秒测试</button>
+      <button type="button" class="btn secondary" id="squatStop" disabled>提前停止</button>
+    </div>
+    <div class="result" id="squatResult"></div>
+    <p class="muted">记录每次测试的次数、动作幅度与是否使用支撑。不同蹲深、计数规则和支撑条件下的结果不能直接比较；当前版本不自动换算年龄或同龄百分位。</p>
+    <div class="row">
+      <button type="button" class="btn secondary" id="squatAgain">再测一次</button>
+      <button type="button" class="btn secondary" id="squatSave">保存本次记录</button>
+      <button type="button" class="btn secondary" id="squatReset">清空本项记录</button>
+    </div>
+    <div class="trials" id="squatTrials"></div>
+  </div>
+</section>
+
+<section class="panel" id="report" role="tabpanel">
+  <div class="card">
+    <h2>个人测试报告</h2>
+    <p class="muted">数据保存在当前浏览器的本机存储中。清理浏览器数据或更换设备可能导致记录丢失，请定期导出备份。</p>
+    <label for="reportName">档案代号（可选，避免填写身份证等敏感信息）</label><input id="reportName" maxlength="60" placeholder="例如：个人基线 A">
+    <div class="card" style="margin-top:14px">
+      <h3>第一步：先查看测试年龄</h3>
+      <p class="muted">无需填写实际年龄。点击下方按钮后，系统先根据当前已有的平衡、皮肤回缩和近点视力记录生成“试算功能年龄”。这是开发中的原型估算，不是经过临床验证的生理年龄。</p>
+      <button type="button" class="btn primary" id="calculateTestAge">生成测试年龄</button>
+      <div class="result" id="testAgeResult" aria-live="polite"></div>
+      <div id="actualAgeStep" style="display:none;margin-top:16px">
+        <h3>第二步：输入实际年龄，查看差距</h3>
+        <label for="reportAge">实际年龄（岁）</label>
+        <input id="reportAge" type="number" min="1" max="120" step="1" placeholder="先查看测试年龄，再填写实际年龄">
+        <button type="button" class="btn secondary" id="compareAge" style="margin-top:10px">比较年龄差</button>
+        <div class="result" id="ageGapResult" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="score-list" id="reportContent"></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn primary" id="exportJson">导出 JSON 备份</button><button type="button" class="btn secondary" id="exportCsv">导出 CSV 表格</button></div>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn secondary" id="printReport">打印 / 保存为 PDF</button><button type="button" class="btn danger" id="clearAll">清空全部本机数据</button></div>
+    <div class="result" id="reportResult"></div>
+  </div>
+  <div class="card">
+    <h3>结果解释原则</h3>
+    <ul class="muted" style="padding-left:20px">
+      <li>本版“试算功能测试年龄”只使用平衡、皮肤回缩、近点视力的暂定公式；属于原型估算，不是经过临床验证的生理年龄。</li>
+      <li>五次坐站、30 秒蹲起、握力和面部观察目前保留原始数据，待核实常模和年龄映射后再纳入年龄计算。</li>
+      <li>PhenoAge 需要单独的血液指标录入与 Levine 公式计算，本版本不将运动测试结果替代为 PhenoAge。</li>
+      <li>照片预览不代表已完成 AI 识别；面部主观观察不能当作医疗结论。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="footer">懒人健康 · V1.2.4｜本机运行 · 不替代专业医疗评估</div>
+</main>
+<script>
+const KEY='lazyHealthV11';
+const state={balance:[],skin:[],sight:[],grip:null,gripSkipped:false,sts:[],squat:[],face:[],ageAssessment:null};
+let balanceInterval=null,balanceCountdown=null,balanceStartAt=0,skinStartAt=0,skinInterval=null,skinCountdownInterval=null,skinCountdownDeadline=0,skinPhase='idle',stsInterval=null,stsStartAt=0,squatInterval=null,squatDeadline=0,squatRemaining=30,squatFinished=false;
+const $=id=>document.getElementById(id);
+const appStatus=$('appStatus');
+function setAppStatus(message,isError){
+ if(!appStatus)return;
+ appStatus.textContent=message;
+ appStatus.style.background=isError?'#fff4dc':'#e7f6ee';
+ appStatus.style.color=isError?'#805900':'#176b5b';
+ appStatus.style.borderColor=isError?'#e7d79c':'#b9e1cd';
+}
+setAppStatus('交互状态：脚本已启动，正在初始化……',false);
+window.addEventListener('error',function(event){
+ setAppStatus('交互状态：脚本运行出错'+(event&&event.message?('：'+event.message):'')+'。请刷新页面；若仍出现，请改用较新的 Safari / Chrome 或 HTTPS 网页。',true);
+});
+window.addEventListener('unhandledrejection',function(){
+ setAppStatus('交互状态：页面运行异常。请刷新页面；若仍出现，请改用较新的 Safari / Chrome 或 HTTPS 网页。',true);
+});
+const fmt=(n,d=1)=>Number(n).toFixed(d);
+function saveState(){state.ageAssessment=null;try{localStorage.setItem(KEY,JSON.stringify({state,reportName:$('reportName').value,reportAge:$('reportAge').value}));}catch(e){} updateReport();}
+function normalizeState(){
+ ['balance','skin','sight','sts','squat','face'].forEach(key=>{
+   if(!Array.isArray(state[key]))state[key]=[];
+ });
+ if(!state.grip||typeof state.grip!=='object')state.grip=null;
+ if(typeof state.gripSkipped!=='boolean')state.gripSkipped=false;
+ if(!state.ageAssessment||typeof state.ageAssessment!=='object'||!Array.isArray(state.ageAssessment.components)){
+   state.ageAssessment=null;
+ }
+ state.squat=state.squat.map(item=>{
+   if(typeof item==='number')return {count:item,depth:'uncertain',support:'none',date:''};
+   return item&&typeof item==='object'?item:{count:0,depth:'uncertain',support:'none',date:''};
+ });
+}
+function loadState(){
+ try{
+   const raw=localStorage.getItem(KEY);
+   if(raw){
+     const x=JSON.parse(raw);
+     if(x&&x.state&&typeof x.state==='object')Object.assign(state,x.state);
+     $('reportName').value=(x&&x.reportName)||'';
+     $('reportAge').value=(x&&x.reportAge)||'';
+   }
+ }catch(e){
+   setAppStatus('交互状态：读取旧记录时遇到问题，正在尝试使用空白记录启动。',true);
+ }
+ normalizeState();
+ renderAll();
+}
+function setTab(id){document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.panel===id)));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));if(id==='report')updateReport();}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.panel)));
+function showResult(id,html){$(id).innerHTML=html;$(id).style.display='block';}
+function hideResult(id){$(id).style.display='none';$(id).innerHTML='';}
+function renderTrials(id,arr,digits=1,unit='秒'){const el=$(id);if(!arr.length){el.innerHTML='<span class="trial">尚未测量</span>';return;}el.innerHTML=arr.map((v,i)=>`<span class="trial">第 ${i+1} 次：${fmt(v,digits)} ${unit}</span>`).join('');}
+function renderAgeAssessment(){
+ const result=$('testAgeResult'),actualStep=$('actualAgeStep'),gap=$('ageGapResult');
+ if(!state.ageAssessment){
+   result.style.display='none';result.innerHTML='';
+   actualStep.style.display='none';gap.style.display='none';gap.innerHTML='';
+   return;
+ }
+ const a=state.ageAssessment;
+ const componentHtml=a.components.map(c=>`<div class="score-item"><span>${c.name}</span><b>${fmt(c.age,1)} 岁</b></div>`).join('');
+ result.innerHTML=`<strong style="font-size:1.25rem">试算功能测试年龄：${fmt(a.testAge,1)} 岁</strong>
+   <div class="muted" style="margin-top:8px">参与计算的单项估算：</div>${componentHtml}
+   <small style="display:block;margin-top:10px">原型算法，尚未经过临床验证。五次坐站、30 秒蹲起、握力和面部观察目前只展示原始记录，不纳入年龄计算。</small>`;
+ result.style.display='block';
+ actualStep.style.display='block';
+ if(Number.isFinite(a.difference)&&Number.isFinite(a.actualAge)&&Number($('reportAge').value)===a.actualAge){
+   const diff=a.difference;
+   const comparison=diff===0?'试算年龄与实际年龄相同。':diff>0?`试算年龄比实际年龄大 ${fmt(Math.abs(diff),1)} 岁。`:`试算年龄比实际年龄小 ${fmt(Math.abs(diff),1)} 岁。`;
+   gap.innerHTML=`<strong>${comparison}</strong><small style="display:block;margin-top:6px">年龄差 = 测试年龄 − 实际年龄 = ${fmt(diff,1)} 岁</small>`;
+   gap.style.display='block';
+ }else{
+   gap.style.display='none';gap.innerHTML='';
+ }
+}
+function updateReport(){
+ const items=[
+ ['闭眼单脚站立',state.balance.length?`最佳 ${fmt(Math.max(...state.balance))} 秒（${state.balance.length} 次）`:'未测'],
+ ['皮肤回缩',state.skin.length?`最快 ${fmt(Math.min(...state.skin))} 秒（${state.skin.length} 次）`:'未测'],
+ ['近点视力',state.sight.length?`最短记录 ${fmt(Math.min(...state.sight))} cm（${state.sight.length} 次）`:'未测'],
+ ['握力',state.grip?`右手 ${(state.grip.right!=null?state.grip.right:'未填')} kg；左手 ${(state.grip.left!=null?state.grip.left:'未填')} kg`:(state.gripSkipped?'已跳过（选测）':'未测（可跳过）')],
+ ['五次坐站',state.sts.length?`最近 ${fmt(state.sts[state.sts.length-1],2)} 秒`:'未测'],
+ ['30 秒蹲起',state.squat.length?`最近 ${state.squat[state.squat.length-1].count} 次`:'未测'],
+ ['试算功能测试年龄',state.ageAssessment?`${fmt(state.ageAssessment.testAge,1)} 岁（原型估算）`:'尚未生成'],
+ ['面部记录',state.face.length?`已保存 ${state.face.length} 条记录`:'未测']
+ ];
+ renderAgeAssessment();
+ $('reportContent').innerHTML=items.map(([a,b])=>`<div class="score-item"><span>${a}</span><b>${b}</b></div>`).join('');
+ try{const raw=localStorage.getItem(KEY);let x=raw?JSON.parse(raw):{};x.state=state;x.reportName=$('reportName').value;x.reportAge=$('reportAge').value;localStorage.setItem(KEY,JSON.stringify(x));}catch(e){}
+}
+function stopBalanceTimers(){clearInterval(balanceInterval);clearInterval(balanceCountdown);balanceInterval=null;balanceCountdown=null;}
+$('balanceStart').addEventListener('click',()=>{
+ if(balanceCountdown||balanceInterval)return;
+ let count=3;$('balanceTimer').textContent='准备：3';$('balanceStart').disabled=true;
+ balanceCountdown=setInterval(()=>{count--;if(count>0){$('balanceTimer').textContent=`准备：${count}`;}else{clearInterval(balanceCountdown);balanceCountdown=null;$('balanceTimer').textContent='闭眼并抬脚';if(navigator.vibrate)navigator.vibrate(80);balanceStartAt=performance.now();$('balanceStop').disabled=false;balanceInterval=setInterval(()=>$('balanceTimer').textContent=fmt((performance.now()-balanceStartAt)/1000)+' 秒',50);}},1000);
+});
+$('balanceStop').addEventListener('click',()=>{if(balanceCountdown){stopBalanceTimers();$('balanceTimer').textContent='已取消';$('balanceStart').disabled=false;$('balanceStop').disabled=true;return;}if(!balanceStartAt)return;const t=Number(((performance.now()-balanceStartAt)/1000).toFixed(1));stopBalanceTimers();balanceStartAt=0;state.balance.push(t);$('balanceStart').disabled=false;$('balanceStop').disabled=true;$('balanceTimer').textContent=fmt(t)+' 秒';renderAll();saveState();});
+$('balanceAgain').addEventListener('click',()=>{stopBalanceTimers();balanceStartAt=0;$('balanceTimer').textContent='0.0 秒';$('balanceStart').disabled=false;$('balanceStop').disabled=true;$('balanceStart').click();});
+$('balanceReset').addEventListener('click',()=>{stopBalanceTimers();balanceStartAt=0;state.balance=[];$('balanceTimer').textContent='0.0 秒';$('balanceStart').disabled=false;$('balanceStop').disabled=true;hideResult('balanceResult');renderAll();saveState();});
+function resetSkinClock(message='准备就绪'){
+ clearInterval(skinCountdownInterval);clearInterval(skinInterval);
+ skinCountdownInterval=null;skinInterval=null;skinCountdownDeadline=0;skinStartAt=0;skinPhase='idle';
+ $('skinToggle').disabled=false;$('skinToggle').textContent='开始测试（捏住 5 秒）';
+ $('skinStop').disabled=true;$('skinTimer').textContent=message;
+}
+$('skinToggle').addEventListener('click',()=>{
+ if(skinPhase==='countdown'){resetSkinClock('本次准备已取消');return;}
+ if(skinPhase!=='idle')return;
+ skinPhase='countdown';skinCountdownDeadline=performance.now()+5000;
+ $('skinToggle').textContent='取消本次准备';$('skinStop').disabled=true;
+ const tick=()=>{
+   const remaining=Math.max(0,(skinCountdownDeadline-performance.now())/1000);
+   $('skinTimer').textContent='捏住皮肤：'+fmt(remaining,1)+' 秒';
+   if(remaining<=0){
+     clearInterval(skinCountdownInterval);skinCountdownInterval=null;skinPhase='rebound';
+     skinStartAt=performance.now();$('skinToggle').disabled=true;
+     $('skinToggle').textContent='正在计时……';$('skinStop').disabled=false;
+     $('skinTimer').textContent='0.0 秒（松手后计时）';
+     if(navigator.vibrate)navigator.vibrate([120,80,120]);
+     skinInterval=setInterval(()=>{
+       if(skinStartAt)$('skinTimer').textContent=fmt((performance.now()-skinStartAt)/1000)+' 秒';
+     },50);
+   }
+ };
+ tick();skinCountdownInterval=setInterval(tick,50);
+});
+$('skinStop').addEventListener('click',()=>{
+ if(skinPhase!=='rebound'||!skinStartAt)return;
+ const t=Number(((performance.now()-skinStartAt)/1000).toFixed(2));
+ clearInterval(skinInterval);skinInterval=null;skinStartAt=0;skinPhase='idle';
+ state.skin.push(t);$('skinToggle').disabled=false;$('skinToggle').textContent='再测一次（捏住 5 秒）';
+ $('skinStop').disabled=true;$('skinTimer').textContent=fmt(t,2)+' 秒';
+ renderAll();saveState();
+});
+window.addEventListener('blur',()=>{
+ if(skinPhase!=='idle')resetSkinClock('页面切换导致测试中断，请重新开始');
+ if(balanceCountdown){stopBalanceTimers();balanceStartAt=0;$('balanceTimer').textContent='已中断，请重新开始';$('balanceStart').disabled=false;$('balanceStop').disabled=true;}
+ if(stsInterval){clearInterval(stsInterval);stsInterval=null;stsStartAt=0;$('stsTimer').textContent='已中断，请重新开始';$('stsStart').disabled=false;$('stsStop').disabled=true;}
+ if(squatInterval){clearInterval(squatInterval);squatInterval=null;squatDeadline=0;squatFinished=false;$('squatTimer').textContent='页面切换导致计时中断，请重新开始';$('squatStart').disabled=false;$('squatStop').disabled=true;}
+});
+$('skinAgain').addEventListener('click',()=>resetSkinClock('已重置本次计时；历史成绩保留'));
+$('skinReset').addEventListener('click',()=>{resetSkinClock('准备就绪');state.skin=[];renderAll();saveState();});
+$('sightRecord').addEventListener('click',()=>{const n=Number($('sightDistance').value);if(!Number.isFinite(n)||n<1||n>100){alert('请输入 1–100 cm 之间的实测距离。');return;}state.sight.push(n);$('sightDistance').value='';renderAll();saveState();});
+$('sightAgain').addEventListener('click',()=>{$('sightDistance').value='';$('sightDistance').focus();});
+$('sightReset').addEventListener('click',()=>{state.sight=[];$('sightDistance').value='';renderAll();saveState();});
+$('gripSave').addEventListener('click',()=>{const parse=id=>{const v=$(id).value.trim();if(!v)return null;const n=Number(v);return Number.isFinite(n)&&n>=0&&n<=150?n:NaN;};const right=parse('gripRight'),left=parse('gripLeft');if(Number.isNaN(right)||Number.isNaN(left)){alert('握力请输入 0–150 kg 的有效数值。');return;}if(right===null&&left===null){alert('请至少输入一侧握力。');return;}state.grip={right,left,sex:$('gripSex').value,dominant:$('gripDominant').value,device:$('gripDevice').value,date:new Date().toISOString().slice(0,10)};state.gripSkipped=false;renderAll();saveState();});
+$('gripSkip').addEventListener('click',()=>{state.grip=null;state.gripSkipped=true;['gripRight','gripLeft','gripDevice'].forEach(id=>$(id).value='');$('gripSex').value='';$('gripDominant').value='right';showResult('gripResult','已跳过握力测试。没有握力计也可以继续其他项目并生成试算结果。');renderAll();saveState();});
+$('gripReset').addEventListener('click',()=>{['gripRight','gripLeft','gripDevice'].forEach(id=>$(id).value='');$('gripSex').value='';$('gripDominant').value='right';state.grip=null;state.gripSkipped=false;renderAll();saveState();});
+$('stsStart').addEventListener('click',()=>{if(stsInterval)return;stsStartAt=performance.now();$('stsStart').disabled=true;$('stsStop').disabled=false;stsInterval=setInterval(()=>$('stsTimer').textContent=fmt((performance.now()-stsStartAt)/1000,2)+' 秒',20);});
+$('stsStop').addEventListener('click',()=>{if(!stsStartAt)return;const t=Number(((performance.now()-stsStartAt)/1000).toFixed(2));clearInterval(stsInterval);stsInterval=null;stsStartAt=0;state.sts.push(t);$('stsTimer').textContent=fmt(t,2)+' 秒';$('stsStart').disabled=false;$('stsStop').disabled=true;renderAll();saveState();});
+$('stsAgain').addEventListener('click',()=>{clearInterval(stsInterval);stsInterval=null;stsStartAt=0;$('stsTimer').textContent='0.00 秒';$('stsStart').disabled=false;$('stsStop').disabled=true;});
+$('stsReset').addEventListener('click',()=>{clearInterval(stsInterval);stsInterval=null;stsStartAt=0;state.sts=[];$('stsTimer').textContent='0.00 秒';$('stsStart').disabled=false;$('stsStop').disabled=true;renderAll();saveState();});
+
+function renderSquatTrials(){
+ const el=$('squatTrials');
+ if(!state.squat.length){el.innerHTML='<span class="trial">尚未保存蹲起测试</span>';return;}
+ el.innerHTML=state.squat.map((x,i)=>`<span class="trial">第 ${i+1} 次：${x.count} 次 · ${x.depth==='partial'?'浅蹲':x.depth==='uncertain'?'深度不确定':'舒适幅度'} · ${x.support==='support'?'有支撑':'无支撑'}</span>`).join('');
+}
+function resetSquatClock(){
+ clearInterval(squatInterval);squatInterval=null;squatDeadline=0;squatRemaining=30;squatFinished=false;
+ $('squatTimer').textContent='30.0 秒';$('squatStart').disabled=false;$('squatStop').disabled=true;
+}
+function finishSquatClock(manual=false){
+ if(!squatInterval&&!squatDeadline)return;
+ clearInterval(squatInterval);squatInterval=null;squatDeadline=0;squatFinished=true;
+ const remaining=Math.max(0,squatRemaining);
+ $('squatTimer').textContent=manual?`已提前停止（剩余 ${fmt(remaining,1)} 秒）`:'时间到';
+ $('squatStart').disabled=false;$('squatStop').disabled=true;
+ $('squatCount').focus();
+}
+$('squatStart').addEventListener('click',()=>{
+ if(squatInterval)return;
+ if(squatFinished)resetSquatClock();
+ squatRemaining=30;squatDeadline=performance.now()+30000;$('squatStart').disabled=true;$('squatStop').disabled=false;
+ $('squatTimer').textContent='30.0 秒';
+ squatInterval=setInterval(()=>{
+   squatRemaining=Math.max(0,(squatDeadline-performance.now())/1000);
+   $('squatTimer').textContent=fmt(squatRemaining,1)+' 秒';
+   if(squatRemaining<=0){finishSquatClock(false);if(navigator.vibrate)navigator.vibrate([100,80,100]);}
+ },50);
+});
+$('squatStop').addEventListener('click',()=>{if(squatInterval)finishSquatClock(true);});
+$('squatAgain').addEventListener('click',()=>{
+ resetSquatClock();$('squatCount').value='';$('squatResult').style.display='none';$('squatResult').innerHTML='';
+});
+$('squatSave').addEventListener('click',()=>{
+ const raw=$('squatCount').value.trim();const count=Number(raw);
+ if(raw===''||!Number.isInteger(count)||count<0||count>100){alert('请输入 0–100 之间的完整蹲起次数。');return;}
+ if(!squatFinished){if(!confirm('计时器尚未完成。确定要保存手动记录的次数吗？'))return;}
+ const item={count,depth:$('squatDepth').value,support:$('squatSupport').value,durationSeconds:Number((30-squatRemaining).toFixed(1)),date:new Date().toISOString().slice(0,10)};
+ state.squat.push(item);renderSquatTrials();
+ showResult('squatResult',`本次已记录：<strong>${count} 次</strong><small>动作幅度：${item.depth==='partial'?'浅蹲 / 受限':item.depth==='uncertain'?'不确定':'舒适范围内'}；${item.support==='support'?'借助支撑':'未借助支撑'}。暂不换算年龄。</small>`);
+ saveState();
+});
+$('squatReset').addEventListener('click',()=>{
+ if(squatInterval)clearInterval(squatInterval);squatInterval=null;squatDeadline=0;squatRemaining=30;squatFinished=false;state.squat=[];
+ $('squatTimer').textContent='30.0 秒';$('squatCount').value='';$('squatStart').disabled=false;$('squatStop').disabled=true;
+ $('squatResult').style.display='none';$('squatResult').innerHTML='';renderSquatTrials();saveState();
+});
+
+$('facePhoto').addEventListener('change',e=>{const file=e.target.files&&e.target.files[0];if(!file)return;if(!file.type.startsWith('image/')){alert('请选择图片文件。');return;}const reader=new FileReader();reader.onload=ev=>{$('facePreview').src=ev.target.result;$('facePreview').style.display='block';};reader.readAsDataURL(file);});
+$('faceSave').addEventListener('click',()=>{state.face.push({date:$('faceDate').value||new Date().toISOString().slice(0,10),notes:$('faceNotes').value.trim()});$('faceNotes').value='';showResult('faceResult','面部观察记录已保存。照片本身不会写入备份文件。');saveState();});
+$('calculateTestAge').addEventListener('click',()=>{
+ const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+ const components=[];
+ if(state.balance.length){
+   const t=Math.max(...state.balance);
+   components.push({name:'闭眼单脚站立（最佳时长）',age:clamp(85-1.1*t,18,85)});
+ }
+ if(state.skin.length){
+   const t=Math.min(...state.skin);
+   components.push({name:'皮肤回缩（最快时间）',age:clamp(20+7.5*t,20,80)});
+ }
+ if(state.sight.length){
+   const d=Math.min(...state.sight);
+   components.push({name:'近点视力（最短距离）',age:clamp((d-7)*1.4+20,18,75)});
+ }
+ if(!components.length){
+   alert('目前还没有可用于试算年龄的记录。请先完成至少一项：平衡、皮肤回缩或近点视力。');
+   return;
+ }
+ const testAge=Number((components.reduce((sum,c)=>sum+c.age,0)/components.length).toFixed(1));
+ state.ageAssessment={testAge,components,model:'prototype-v0.1',generatedAt:new Date().toISOString()};
+ updateReport();
+});
+$('compareAge').addEventListener('click',()=>{
+ if(!state.ageAssessment){alert('请先生成测试年龄。');return;}
+ const raw=$('reportAge').value.trim(),actualAge=Number(raw);
+ if(raw===''||!Number.isInteger(actualAge)||actualAge<1||actualAge>120){alert('请输入 1–120 之间的实际年龄（整岁）。');return;}
+ state.ageAssessment.actualAge=actualAge;
+ state.ageAssessment.difference=Number((state.ageAssessment.testAge-actualAge).toFixed(1));
+ updateReport();
+});
+$('reportName').addEventListener('input',updateReport);
+$('reportAge').addEventListener('input',()=>{
+ if(state.ageAssessment){delete state.ageAssessment.actualAge;delete state.ageAssessment.difference;}
+ updateReport();
+});
+function payload(){return {app:'懒人健康',version:'1.2.2',exportedAt:new Date().toISOString(),profile:{code:$('reportName').value.trim()||null,age:$('reportAge').value?Number($('reportAge').value):null},measurements:state,ageAssessment:state.ageAssessment,notes:'试算功能年龄采用原型映射，未经临床验证；蹲起、五次坐站、握力和面部记录暂不纳入年龄计算。原始测量记录不代表临床诊断。'};}
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('exportJson').addEventListener('click',()=>download('懒人健康-测量备份.json',JSON.stringify(payload(),null,2),'application/json;charset=utf-8'));
+$('exportCsv').addEventListener('click',()=>{const rows=[['项目','日期','结果','单位','备注']];state.balance.forEach((v,i)=>rows.push(['闭眼单脚站立', '',v,'秒',`第${i+1}次`]));state.skin.forEach((v,i)=>rows.push(['皮肤回缩','',v,'秒',`第${i+1}次`]));state.sight.forEach((v,i)=>rows.push(['近点视力','',v,'cm',`第${i+1}次`]));state.sts.forEach((v,i)=>rows.push(['五次坐站','',v,'秒',`第${i+1}次`]));state.squat.forEach((v,i)=>rows.push(['30秒蹲起',v.date,v.count,'次',`第${i+1}次；动作幅度=${v.depth}；支撑=${v.support}`]));if(state.grip){rows.push(['右手握力',state.grip.date,(state.grip.right!=null?state.grip.right:''),'kg',state.grip.device||'']);rows.push(['左手握力',state.grip.date,(state.grip.left!=null?state.grip.left:''),'kg',state.grip.device||'']);}state.face.forEach(v=>rows.push(['面部观察',v.date,'','',v.notes||'']));const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v!=null?v:'').replace(/"/g,'""')}"`).join(',')).join('\r\n');download('懒人健康-测量记录.csv',csv,'text/csv;charset=utf-8');});
+$('printReport').addEventListener('click',()=>window.print());
+$('clearAll').addEventListener('click',()=>{if(!confirm('确定清空本浏览器中保存的所有懒人健康数据？此操作不可撤销，请先导出备份。'))return;stopBalanceTimers();clearInterval(skinInterval);clearInterval(skinCountdownInterval);skinInterval=null;skinCountdownInterval=null;skinPhase='idle';clearInterval(stsInterval);clearInterval(squatInterval);squatInterval=null;squatDeadline=0;squatRemaining=30;squatFinished=false;balanceStartAt=skinStartAt=stsStartAt=0;localStorage.removeItem(KEY);Object.keys(state).forEach(k=>state[k]=Array.isArray(state[k])?[]:null);$('reportName').value='';$('reportAge').value='';$('testAgeResult').style.display='none';$('testAgeResult').innerHTML='';$('actualAgeStep').style.display='none';$('ageGapResult').style.display='none';$('ageGapResult').innerHTML='';$('balanceTimer').textContent='0.0 秒';$('balanceStart').disabled=false;$('balanceStop').disabled=true;$('skinTimer').textContent='准备就绪';$('skinToggle').disabled=false;$('skinToggle').textContent='开始测试（捏住 5 秒）';$('skinStop').disabled=true;$('stsTimer').textContent='0.00 秒';$('stsStart').disabled=false;$('stsStop').disabled=true;$('squatTimer').textContent='30.0 秒';$('squatCount').value='';$('squatStart').disabled=false;$('squatStop').disabled=true;$('squatResult').style.display='none';renderAll();});
+function renderAll(){renderTrials('balanceTrials',state.balance);renderTrials('skinTrials',state.skin);renderTrials('sightTrials',state.sight,1,'cm');renderTrials('stsTrials',state.sts,2,'秒');renderSquatTrials();
+ if(state.balance.length)showResult('balanceResult',`已完成 ${state.balance.length} 次；最佳时长 <strong>${fmt(Math.max(...state.balance))} 秒</strong><small>仅记录原始成绩，不生成未经验证的年龄。</small>`);else hideResult('balanceResult');
+ if(state.skin.length)showResult('skinResult',`最快回缩时间 <strong>${fmt(Math.min(...state.skin))} 秒</strong>`);else hideResult('skinResult');
+ if(state.sight.length)showResult('sightResult',`记录 ${state.sight.length} 次；最近距离 <strong>${fmt(Math.min(...state.sight))} cm</strong><small>请按相同条件重复测量。</small>`);else hideResult('sightResult');
+ if(state.sts.length)showResult('stsResult',`最近一次五次坐站用时 <strong>${fmt(state.sts[state.sts.length-1],2)} 秒</strong>`);else hideResult('stsResult');
+ if(state.grip)showResult('gripResult',`已保存握力：右手 <strong>${(state.grip.right!=null?state.grip.right:'未填')} kg</strong>；左手 <strong>${(state.grip.left!=null?state.grip.left:'未填')} kg</strong><small>当前版本不生成未经核验的百分位或握力年龄。</small>`);else if(state.gripSkipped)showResult('gripResult','已跳过握力测试。此项为选测，不影响其他项目。');else hideResult('gripResult');
+ updateReport();}
+loadState();
+setAppStatus('交互状态：已启动。按钮已完成初始化。',false);
+</script>
+</body>
+</html>
